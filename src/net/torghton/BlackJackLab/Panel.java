@@ -1,5 +1,6 @@
 package net.torghton.BlackJackLab;
 
+import javafx.scene.control.ButtonBar;
 import net.torghton.BlackJackLab.AlexsGameEnhancers.*;
 
 import javax.swing.JPanel;
@@ -51,6 +52,23 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
         imageLoader.loadImage("ShoppingCartIcon", "./assets/Buttons/ShoppingCartIcon.png");
         imageLoader.loadImage("ShoppingCartHoverIcon", "./assets/Buttons/ShoppingCartHoverIcon.png");
         imageLoader.loadImage("CardBack", "./assets/ExtraPlayingCards/PlayingCardBack.png");
+        imageLoader.loadImage("LuckySticks", "./assets/ShopImages/LuckySticks.png");
+        imageLoader.loadImage("LuckySticksToolTip", "./assets/ShopImages/LuckySticksToolTip.png");
+        imageLoader.loadImage("StuffedBunnyToolTip", "./assets/ShopImages/StuffedBunnyToolTip.png");
+        imageLoader.loadImage("ToyTruck", "./assets/ShopImages/ToyTruck.png");
+        imageLoader.loadImage("ToyTruckToolTip", "./assets/ShopImages/ToyTruckToolTip.png");
+        imageLoader.loadImage("Dreidel", "./assets/ShopImages/Dreidel.png");
+        imageLoader.loadImage("DreidelToolTip", "./assets/ShopImages/DreidelToolTip.png");
+        imageLoader.loadImage("Logo", "./assets/Logo/Logo.png");
+        imageLoader.loadImage("HitImage", "./assets/ExtraPlayingCards/HitImage.png");
+        imageLoader.loadImage("HitImageHovered", "./assets/ExtraPlayingCards/HitImageHovered.png");
+        imageLoader.loadImage("StandImage", "./assets/ExtraPlayingCards/StandImage.png");
+        imageLoader.loadImage("StandImageHovered", "./assets/ExtraPlayingCards/StandImageHovered.png");
+        imageLoader.loadImage("PlayButton", "./assets/Buttons/PlayButton.png");
+        imageLoader.loadImage("PlayButtonHovered", "./assets/Buttons/PlayButtonHovered.png");
+        imageLoader.loadImage("HelpButton", "./assets/Buttons/HelpButton.png");
+        imageLoader.loadImage("HelpButtonHovered", "./assets/Buttons/HelpButtonHovered.png");
+        imageLoader.loadImage("HelpScreen", "./assets/Backgrounds/HelpScreen.png");
 
         DrawableManager drawableManagerT = new DrawableManager(5);
 
@@ -117,7 +135,7 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
         }
 
         // Real BlackJack
-        Money money = new Money(200, new Vector(500, 50), 50);
+        Money money = new Money(100, new Vector(500, 50), 50);
         addManagers(money, 1, 4);
 
         QuickText betAmountText = new QuickText(new Color(255, 222, 36), "Amount To Bet: ", new Vector(390, 630), 30, true);
@@ -138,6 +156,8 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
                     cards.setPreviewMode(false);
                 }
             }
+
+            prompt.setCurrentlyHidden(true);
         });
         add(prompt);
 
@@ -145,7 +165,6 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
             if(scene == 1) {
                 prompt.setVisible(!prompt.getCurrentlyHidden());
             } else {
-                prompt.setCurrentlyHidden(!prompt.isVisible());
                 prompt.setVisible(false);
             }
         });
@@ -159,12 +178,24 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
         Background shopBackground = new Background(imageLoader.getImage("ShopBackground"), SCREENSIZE);
         addManagers(shopBackground, 2, 0);
 
-        cards = new Cards(cardImages, imageLoader.getImage("CardBack"), cardValues, (playerWon, totalPlayerPoints) -> {
-            money.calculateNewMoneyFromWinner(playerWon);
-            money.calculateNewPointsFramGamePoints(totalPlayerPoints);
-            prompt.setVisible(true);
-            prompt.setFocusable(true);
-            betAmountText.setVisible(true);
+        Background helpScreen = new Background(imageLoader.getImage("HelpScreen"), SCREENSIZE);
+        addManagers(helpScreen, 3, 0);
+
+        cards = new Cards(cardImages, imageLoader.getImage("CardBack"), cardValues, new GameStateEvent() {
+            @Override
+            public void onGameEnd(boolean playerWon, int points) {
+                money.calculateNewMoneyFromWinner(playerWon);
+                money.setTotalPoints(money.getTotalPoints() + money.calculateNewPointsFramGamePoints(points));
+                prompt.setCurrentlyHidden(false);
+                prompt.setVisible(true);
+                prompt.setFocusable(true);
+                betAmountText.setVisible(true);
+            }
+
+            @Override
+            public void onGamePreview(int points) {
+                cards.setOutCome(cards.getOutCome() + " + " + money.calculateNewPointsFramGamePoints(points) + "pts");
+            }
         });
         addManagers(cards, 1, 2);
 
@@ -178,36 +209,66 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
             return new Vector(-100, -100);
         };
 
-        Button realBlackJackPlayButton = new Button(imageLoader.getImage("TempButton"), new Vector(SCREENSIZE.width/2 - 150, 450), new Dimension(300, 80), () -> scene.setScene(1), getMousePos);
+        VisualImage logo = new VisualImage(imageLoader.getImage("Logo"), new Vector((SCREENSIZE.width/2)-300, 50), new Dimension(600, 300));
+        addManagers(logo, 0, 3);
+
+        Button realBlackJackPlayButton = new Button(imageLoader.getImage("PlayButton"), imageLoader.getImage("PlayButtonHovered"), new Vector(SCREENSIZE.width/2 - 150, 450), new Dimension(300, 80), () -> scene.setScene(1), getMousePos);
         addManagers(realBlackJackPlayButton, 0, 2);
 
-        Button fakeBlackJackPlayButton =  new Button(imageLoader.getImage("TempButton"), new Vector(SCREENSIZE.width/2 - 150, 600), new Dimension(300, 80), () -> scene.setScene(3), getMousePos);
-        addManagers(fakeBlackJackPlayButton, 0, 2);
-
+        Button helpButton =  new Button(imageLoader.getImage("HelpButton"), imageLoader.getImage("HelpButtonHovered"), new Vector(SCREENSIZE.width/2 - 150, 600), new Dimension(300, 80), () -> scene.setScene(3), getMousePos);
+        addManagers(helpButton, 0, 2);
 
         Button shopButton = new Button(imageLoader.getImage("ShoppingCartIcon"), imageLoader.getImage("ShoppingCartHoverIcon"), new Vector(10, 10), new Dimension(130, 130), () -> scene.setScene(2), getMousePos);
         addManagers(shopButton, 1, 2);
 
+        Button HitButton = new Button(imageLoader.getImage("HitImage"), imageLoader.getImage("HitImageHovered"), new Vector(30, 600), new Dimension(130, 150), () -> cards.hit(), getMousePos);
+        addManagers(HitButton, 1, 2);
+
+        Button StandButton = new Button(imageLoader.getImage("StandImage"), imageLoader.getImage("StandImageHovered"), new Vector(200, 600), new Dimension(130, 150), () -> cards.stand(), getMousePos);
+        addManagers(StandButton, 1, 2);
+
         Button leaveButton = new Button(imageLoader.getImage("ExitHand"), new Vector(0, 0), new Dimension(200, 200), () -> scene.setScene(1), getMousePos);
         addManagers(leaveButton, 2, 2);
 
+        Button leaveButton2 = new Button(imageLoader.getImage("ExitHand"), new Vector(-30, 640), new Dimension(200, 200), () -> scene.setScene(0), getMousePos);
+        addManagers(leaveButton2, 3, 2);
+
         // Shop Items
-        Button ring = new Button(imageLoader.getImage("GoldRing"), imageLoader.getImage("GoldRingToolTip"), new Vector(100, 310), new Dimension(150, 150), () -> {
+        Button luckySticks = new Button(imageLoader.getImage("LuckySticks"), imageLoader.getImage("LuckySticksToolTip"), new Vector(50, 220), new Dimension(200, 200), () -> {
+            if(money.spendMoney(100)) {
+                money.increaseMultiplyer(.015);
+            }
+        }, getMousePos);
+        addManagers(luckySticks, 2, 2);
+
+        // Shop Items
+        Button ring = new Button(imageLoader.getImage("GoldRing"), imageLoader.getImage("GoldRingToolTip"), new Vector(260, 300), new Dimension(150, 150), () -> {
             if(money.spendMoney(1000)) {
                 money.increaseMultiplyer(.2);
             }
         }, getMousePos);
         addManagers(ring, 2, 2);
 
-        Button StuffedBunny = new Button(imageLoader.getImage("StuffedBunny"), imageLoader.getImage("GoldRingToolTip"), new Vector(300, 210), new Dimension(200, 300), () -> {
+        Button StuffedBunny = new Button(imageLoader.getImage("StuffedBunny"), imageLoader.getImage("StuffedBunnyToolTip"), new Vector(500, 130), new Dimension(200, 300), () -> {
             if(money.spendMoney(10000)) {
-                money.increaseMultiplyer(3);
+                money.increaseMultiplyer(2);
             }
         }, getMousePos);
         addManagers(StuffedBunny, 2, 2);
 
+        Button ToyTruck = new Button(imageLoader.getImage("ToyTruck"), imageLoader.getImage("ToyTruckToolTip"), new Vector(40, 480), new Dimension(720, 220), () -> {
+            if(money.spendMoney(100000)) {
+                money.increaseMultiplyer(40);
+            }
+        }, getMousePos);
+        addManagers(ToyTruck, 2, 2);
 
-
+        Button Dreidel = new Button(imageLoader.getImage("Dreidel"), imageLoader.getImage("DreidelToolTip"), new Vector(400, 15), new Dimension(100, 100), () -> {
+            if(money.spendPoints(100)) {
+                money.gain(10000);
+            }
+        }, getMousePos);
+        addManagers(Dreidel, 2, 2);
 
 
 

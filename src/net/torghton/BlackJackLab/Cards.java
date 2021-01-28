@@ -11,6 +11,7 @@ import java.util.Random;
 
 interface GameStateEvent {
     void onGameEnd(boolean playerWon, int points);
+    void onGamePreview(int points);
 }
 
 public class Cards implements Drawable, KeyInteractable {
@@ -35,6 +36,8 @@ public class Cards implements Drawable, KeyInteractable {
 
     private String outCome;
 
+    private int CardToTake;
+
     public Cards(Image[] cardImages, Image hiddenCard, int[] CardPoints, GameStateEvent gameStateEvent) {
         this.hiddenCard = hiddenCard;
 
@@ -43,6 +46,9 @@ public class Cards implements Drawable, KeyInteractable {
         outCome = "";
 
         playerWon = false;
+        gameOver = false;
+
+        CardToTake = 0;
 
         this.gameStateEvent = gameStateEvent;
 
@@ -53,20 +59,10 @@ public class Cards implements Drawable, KeyInteractable {
 
         keys = new Hashtable<>();
         keys.put(72, () -> {
-            if(!gameOver && !previewMode) {
-                player.draw();
-                if(player.checkForBust()) {
-                    endGame(true);
-                }
-            }
+            hit();
         });
         keys.put(83, () -> {
-            if(!gameOver && !previewMode) {
-                player.stand();
-                if(player.checkForBust()) {
-                    endGame(true);
-                }
-            }
+            stand();
         });
 
         keys.put(82, () -> {
@@ -83,6 +79,8 @@ public class Cards implements Drawable, KeyInteractable {
     }
 
     public void restart(Image[] cardImages) {
+        CardToTake = 0;
+
         for(Card card: player.getCardsInHand()) {
             card.setHidden(false);
         }
@@ -116,6 +114,36 @@ public class Cards implements Drawable, KeyInteractable {
         this.previewMode = previewMode;
     }
 
+    public void setOutCome(String outCome) {
+        this.outCome = outCome;
+    }
+
+    public String getOutCome() {
+        return outCome;
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public void hit() {
+        if (!gameOver && !previewMode && getPlayer().getCardsInHand().size() > 0) {
+            player.draw();
+            if (player.checkForBust()) {
+                endGame(true);
+            }
+        }
+    }
+
+    public void stand() {
+        if(!gameOver && !previewMode && getPlayer().getCardsInHand().size() > 0) {
+            player.stand();
+            if(player.checkForBust()) {
+                endGame(true);
+            }
+        }
+    }
+
     private Card[] newCards(Card[] _cards, Image[] cardImages) {
         Card[] _cardsTemp = new Card[_cards.length];
 
@@ -145,13 +173,15 @@ public class Cards implements Drawable, KeyInteractable {
                     playerWon = false;
                 }
             } else {
-                outCome = "DEALER BUSTED\nYOU WIN";
+                outCome = "YOU WIN";
                 playerWon = true;
             }
         } else {
             outCome = "You Lost!";
             playerWon = false;
         }
+
+        gameStateEvent.onGamePreview(player.getTotalPoints());
 
     }
 
@@ -219,8 +249,7 @@ public class Cards implements Drawable, KeyInteractable {
 
         // TODO: SWITCH THIS TO TAKE FROM TOP OF THE DECK, AND NOT A RANDOM INDEX
         public Card draw() {
-            int rnd = new Random().nextInt(cardsInDeck.length);
-            cardsInHand.add(cardsInDeck[rnd]);
+            cardsInHand.add(cardsInDeck[++CardToTake]);
 
             return cardsInHand.get(cardsInHand.size()-1);
         }

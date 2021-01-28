@@ -5,6 +5,8 @@ import net.torghton.BlackJackLab.AlexsGameEnhancers.Vector;
 import net.torghton.BlackJackLab.AlexsGameEnhancers.VisualComponent;
 
 import java.awt.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public class Money implements Drawable {
 
@@ -41,8 +43,8 @@ public class Money implements Drawable {
 
     public boolean spendPoints(int amount) {
         if(amount >= 0) {
-            if(totalMoney - amount >= 0) {
-                setTotalMoney(totalMoney - amount);
+            if(totalPoints - amount >= 0) {
+                setTotalPoints(totalPoints - amount);
                 return true;
             }
         }
@@ -64,24 +66,26 @@ public class Money implements Drawable {
         this.totalPoints = totalPoints;
     }
 
-    public void calculateNewPointsFramGamePoints(int points) {
+    public int getTotalPoints() {
+        return totalPoints;
+    }
+
+    public int calculateNewPointsFramGamePoints(int points) {
         switch(points) {
             case 16:
             case 17:
-                setTotalPoints(totalPoints + 1);
-                break;
+                return 1;
             case 18:
             case 19:
-                setTotalPoints(totalPoints + 2);
-                break;
+                return 2;
             case 20:
-                setTotalPoints(totalPoints + 3);
-                break;
+                return 3;
             case 21:
-                setTotalPoints(totalPoints + 5);
-                break;
+                return 5;
 
         }
+
+        return 0;
     }
 
     public boolean bet(int amountToBet) {
@@ -108,6 +112,8 @@ public class Money implements Drawable {
         g.setFont(new Font("Money", 0, size));
         g.drawString("$$$ = " + totalMoney, (int) location.getXDirection(), (int) location.getYDirection());
         g.drawString("Points = " + totalPoints, (int) location.getXDirection(), (int) location.getYDirection()+size*2);
+        g.drawString("Mult = " + String.valueOf(new BigDecimal(cashMultiplyer).setScale(2, RoundingMode.DOWN)) + "x", 150, 100);
+
         g.setFont(new Font("Amount Bet", 0, size/2));
         g.drawString("Amount Bet = " + amountBet, (int) location.getXDirection(), (int) location.getYDirection() + size);
     }
