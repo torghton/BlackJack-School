@@ -11,6 +11,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
+
+// TODO: DISPLAY TOTAL POINTS AND POINTS EARNED
 public class Panel extends JPanel implements KeyListener, MouseListener {
 
     private final Dimension SCREENSIZE;
@@ -47,6 +49,8 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
         imageLoader.loadImage("GoldRing", "./assets/ShopImages/GoldRing.png");
         imageLoader.loadImage("GoldRingToolTip", "./assets/ShopImages/GoldRingToolTip.png");
         imageLoader.loadImage("StuffedBunny", "./assets/ShopImages/StuffedBunny.png");
+        imageLoader.loadImage("ShoppingCartIcon", "./assets/Buttons/ShoppingCartIcon.png");
+        imageLoader.loadImage("ShoppingCartHoverIcon", "./assets/Buttons/ShoppingCartHoverIcon.png");
 
         DrawableManager drawableManagerT = new DrawableManager(5);
 
@@ -101,15 +105,22 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
         Money money = new Money(200, new Vector(500, 50), 50);
         addManagers(money, 1, 4);
 
-        Prompt prompt = new Prompt("0", new Vector(500,500),  new Dimension(100, 40));
+        QuickText betAmountText = new QuickText(new Color(255, 222, 36), "Amount To Bet: ", new Vector(390, 630), 30, true);
+        addManagers(betAmountText, 1, 4);
+
+        Prompt prompt = new Prompt("0", new Vector(600,700),  new Dimension(100, 40));
         prompt.addActionListener((event) -> {
             int moneyBetting = prompt.getIntValue();
 
-            if(moneyBetting > 0) {
+            if(moneyBetting >= 0) {
                 if(money.bet(moneyBetting)) {
                     prompt.setText("0");
                     prompt.setFocusable(false);
                     prompt.setVisible(false);
+                    betAmountText.setVisible(false);
+                    cards.restart();
+                    cards.setGameOver(false);
+                    cards.setPreviewMode(false);
                 }
             }
         });
@@ -117,8 +128,9 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
 
         scene.onSceneChange((scene) -> {
             if(scene == 1) {
-                prompt.setVisible(true);
+                prompt.setVisible(!prompt.getCurrentlyHidden());
             } else {
+                prompt.setCurrentlyHidden(!prompt.isVisible());
                 prompt.setVisible(false);
             }
         });
@@ -136,6 +148,7 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
             money.calculateNewMoneyFromPoints(playerWon);
             prompt.setVisible(true);
             prompt.setFocusable(true);
+            betAmountText.setVisible(true);
         });
         addManagers(cards, 1, 2);
 
@@ -152,7 +165,7 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
         Button playButton = new Button(imageLoader.getImage("TempButton"), new Vector(SCREENSIZE.width/2 - 100, 100), new Dimension(200, 80), () -> scene.setScene(1), getMousePos);
         addManagers(playButton, 0, 2);
 
-        Button shopButton = new Button(imageLoader.getImage("TempButton"), new Vector(10, 10), new Dimension(100, 100), () -> scene.setScene(2), getMousePos);
+        Button shopButton = new Button(imageLoader.getImage("ShoppingCartIcon"), imageLoader.getImage("ShoppingCartHoverIcon"), new Vector(10, 10), new Dimension(130, 130), () -> scene.setScene(2), getMousePos);
         addManagers(shopButton, 1, 2);
 
         Button leaveButton = new Button(imageLoader.getImage("ExitHand"), new Vector(0, 0), new Dimension(200, 200), () -> scene.setScene(1), getMousePos);

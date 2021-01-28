@@ -24,6 +24,8 @@ public class Cards implements Drawable, KeyInteractable {
     private Dealer dealer;
 
     private boolean gameOver;
+    private boolean previewMode;
+    private boolean playerWon;
 
     private GameStateEvent gameStateEvent;
 
@@ -34,6 +36,8 @@ public class Cards implements Drawable, KeyInteractable {
         this.suitImages = suitImages;
         this.cardImages = cardImages;
 
+        playerWon = false;
+
         this.gameStateEvent = gameStateEvent;
 
         this.CardPoints = CardPoints;
@@ -43,7 +47,7 @@ public class Cards implements Drawable, KeyInteractable {
 
         keys = new Hashtable<>();
         keys.put(72, () -> {
-            if(!gameOver) {
+            if(!gameOver && !previewMode) {
                 player.draw();
                 if(player.checkForBust()) {
                     endGame(true);
@@ -51,7 +55,7 @@ public class Cards implements Drawable, KeyInteractable {
             }
         });
         keys.put(83, () -> {
-            if(!gameOver) {
+            if(!gameOver && !previewMode) {
                 player.stand();
                 if(player.checkForBust()) {
                     endGame(true);
@@ -59,12 +63,19 @@ public class Cards implements Drawable, KeyInteractable {
             }
         });
 
-        cardsInDeck = new Card[CardPoints.length*4];
+        keys.put(82, () -> {
+            if(previewMode) {
+                gameOver = true;
+                gameStateEvent.onGameEnd(playerWon);
+                player.getCardsInHand().clear();
+                dealer.getCardsInHand().clear();
+            }
+        });
 
-        restart(suitImages, cardImages);
+        cardsInDeck = new Card[CardPoints.length*4];
     }
 
-    private void restart(Image[] suitImages, Image[] cardImages) {
+    public void restart(Image[] suitImages, Image[] cardImages) {
         player.getCardsInHand().clear();
         dealer.getCardsInHand().clear();
 
@@ -76,6 +87,18 @@ public class Cards implements Drawable, KeyInteractable {
 
         dealer.draw();
         dealer.draw();
+    }
+
+    public void restart() {
+        restart(suitImages, cardImages);
+    }
+
+    public void setGameOver(boolean gameOver) {
+        this.gameOver = gameOver;
+    }
+
+    public void setPreviewMode(boolean previewMode) {
+        this.previewMode = previewMode;
     }
 
     private Card[] newCards(Card[] _cards, Image[] _suitImages, Image[] cardImages) {
@@ -96,7 +119,7 @@ public class Cards implements Drawable, KeyInteractable {
     }
 
     private void endGame(boolean busted) {
-        gameOver = true;
+        previewMode = true;
 
         if(!busted) {
             dealer.autoPlay(player);
@@ -104,27 +127,23 @@ public class Cards implements Drawable, KeyInteractable {
             if(!dealer.checkForBust()) {
                 if(dealer.getTotalPoints() < player.getTotalPoints()) {
                     System.out.println("YOU WIN");
-                    gameStateEvent.onGameEnd(true);
+                    playerWon = true;
                 } else {
                     System.out.println("You Lost!");
-                    gameStateEvent.onGameEnd(false);
+                    playerWon = false;
                 }
             } else {
                 System.out.println("DEALER BUSTED");
                 System.out.println("YOU WIN");
-                gameStateEvent.onGameEnd(true);
+                playerWon = true;
             }
         } else {
             System.out.println("You Lost!");
-            gameStateEvent.onGameEnd(false);
+            playerWon = false;
         }
 
         System.out.println("Dealer Points: " + dealer.getTotalPoints());
         System.out.println("Player Points: " + player.getTotalPoints());
-
-        restart(suitImages, cardImages);
-
-        gameOver = false;
 
     }
 

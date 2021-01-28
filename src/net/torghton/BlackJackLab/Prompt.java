@@ -5,11 +5,14 @@ import net.torghton.BlackJackLab.AlexsGameEnhancers.Vector;
 import javax.swing.*;
 import java.awt.*;
 
-public class Prompt extends JTextField{
+public class Prompt extends JTextField {
 
     private String placeholderText;
+    private boolean currentlyHidden;
 
     public Prompt(String placeholderText, Vector location, Dimension size) {
+        currentlyHidden = false;
+
         this.placeholderText = placeholderText;
         setVisible(false);
 
@@ -25,5 +28,13 @@ public class Prompt extends JTextField{
         } catch(Exception e) {}
 
         return 0;
+    }
+
+    public void setCurrentlyHidden(boolean currentlyHidden) {
+        this.currentlyHidden = currentlyHidden;
+    }
+
+    public boolean getCurrentlyHidden() {
+        return currentlyHidden;
     }
 }
