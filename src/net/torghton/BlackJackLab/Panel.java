@@ -10,6 +10,9 @@ import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
 
 
 // TODO: DISPLAY TOTAL POINTS AND POINTS EARNED
@@ -37,10 +40,6 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
 
         imageLoader = new ImageLoader();
 
-        imageLoader.loadImage("Club", "./assets/CardSuits/ClubSuit.png");
-        imageLoader.loadImage("Spade", "./assets/CardSuits/DiamondSuit.png");
-        imageLoader.loadImage("Heart", "./assets/CardSuits/HeartSuit.png");
-        imageLoader.loadImage("Diamond", "./assets/CardSuits/SpadeSuit.png");
         imageLoader.loadImage("BackgroundT", "./assets/Backgrounds/TitleBackgroundImage.jpg");
         imageLoader.loadImage("BoardBackground", "./assets/Backgrounds/CasinoBoardBackground.jpg");
         imageLoader.loadImage("ShopBackground", "./assets/Backgrounds/ShopBackground.jpg");
@@ -76,32 +75,47 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
 
         ClickManager clickManager2 = new ClickManager();
 
+        DrawableManager BdrawableManager1 = new DrawableManager(5);
+
+        KeyInteractor BkeyInteractor1 = new KeyInteractor();
+
+        Updater Bupdater1 = new Updater();
+
+        ClickManager BclickManager1 = new ClickManager();
+
         managerArray = new ManagerArray();
         managerArray.addManagers(clickManagerT, drawableManagerT, keyInteractorT, updaterT);
         managerArray.addManagers(clickManager1, drawableManager1, keyInteractor1, updater1);
         managerArray.addManagers(clickManager2, drawableManager2, keyInteractor2, updater2);
+        managerArray.addManagers(BclickManager1, BdrawableManager1, BkeyInteractor1, Bupdater1);
 
         scene = new Scene(0);
 
-        Image[] suitImages = {imageLoader.getImage("Spade"),imageLoader.getImage("Heart"),
-                imageLoader.getImage("Club"),imageLoader.getImage("Diamond")};
-
         int[] cardValues = {2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11};
-        Image[] cardImages = new Image[13];
-        cardImages[0] = imageLoader.loadImage("Two", "./assets/CardValues/Two.png");
-        cardImages[1] = imageLoader.loadImage("Three", "./assets/CardValues/Three.png");
-        cardImages[2] = imageLoader.loadImage("Four", "./assets/CardValues/Four.jpg");
-        cardImages[3] = imageLoader.loadImage("Five", "./assets/CardValues/Five.jpg");
-        cardImages[4] = imageLoader.loadImage("Six", "./assets/CardValues/Six.jpg");
-        cardImages[5] = imageLoader.loadImage("Seven", "./assets/CardValues/Seven.jpg");
-        cardImages[6] = imageLoader.loadImage("Eight", "./assets/CardValues/Eight.jpg");
-        cardImages[7] = imageLoader.loadImage("Nine", "./assets/CardValues/Nine.png");
-        cardImages[8] = imageLoader.loadImage("Ten", "./assets/CardValues/Ten.png");
-        cardImages[9] = imageLoader.loadImage("Jack", "./assets/CardValues/Jack.png");
-        cardImages[10] = imageLoader.loadImage("Queen", "./assets/CardValues/Queen.png");
-        cardImages[11] = imageLoader.loadImage("King", "./assets/CardValues/King.png");
-        cardImages[12] = imageLoader.loadImage("Ace", "./assets/CardValues/Ace.png");
 
+        String[] cardValueNames = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
+        Image[] cardImages = new Image[52];
+        File file = new File("./assets/CardValues");
+
+        String[] pathNames = file.list();
+        ArrayList<String> pathNamesAL = new ArrayList<>();
+        Collections.addAll(pathNamesAL, pathNames);
+
+        for(int i = 0; i < pathNamesAL.size(); i++) {
+            System.out.println(i + ": " + pathNamesAL.get(i));
+        }
+
+        for(int i = 0; i < 4; i++) {
+            for(int j = 0; j < 13; j++) {
+                int index = getIndexOfStartStringInArrayList(pathNamesAL, cardValueNames[j]);
+
+                cardImages[(i*13)+j] = imageLoader.loadImage(pathNamesAL.get(index), "./assets/CardValues/" + pathNamesAL.get(index));
+
+                pathNamesAL.remove(index);
+            }
+        }
+
+        // Real BlackJack
         Money money = new Money(200, new Vector(500, 50), 50);
         addManagers(money, 1, 4);
 
@@ -144,8 +158,9 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
         Background shopBackground = new Background(imageLoader.getImage("ShopBackground"), SCREENSIZE);
         addManagers(shopBackground, 2, 0);
 
-        cards = new Cards(suitImages, cardImages, cardValues, playerWon -> {
-            money.calculateNewMoneyFromPoints(playerWon);
+        cards = new Cards(cardImages, cardValues, (playerWon, totalPlayerPoints) -> {
+            money.calculateNewMoneyFromWinner(playerWon);
+            money.calculateNewPointsFramGamePoints(totalPlayerPoints);
             prompt.setVisible(true);
             prompt.setFocusable(true);
             betAmountText.setVisible(true);
@@ -162,8 +177,12 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
             return new Vector(-100, -100);
         };
 
-        Button playButton = new Button(imageLoader.getImage("TempButton"), new Vector(SCREENSIZE.width/2 - 100, 100), new Dimension(200, 80), () -> scene.setScene(1), getMousePos);
-        addManagers(playButton, 0, 2);
+        Button realBlackJackPlayButton = new Button(imageLoader.getImage("TempButton"), new Vector(SCREENSIZE.width/2 - 150, 450), new Dimension(300, 80), () -> scene.setScene(1), getMousePos);
+        addManagers(realBlackJackPlayButton, 0, 2);
+
+        Button fakeBlackJackPlayButton =  new Button(imageLoader.getImage("TempButton"), new Vector(SCREENSIZE.width/2 - 150, 600), new Dimension(300, 80), () -> scene.setScene(3), getMousePos);
+        addManagers(fakeBlackJackPlayButton, 0, 2);
+
 
         Button shopButton = new Button(imageLoader.getImage("ShoppingCartIcon"), imageLoader.getImage("ShoppingCartHoverIcon"), new Vector(10, 10), new Dimension(130, 130), () -> scene.setScene(2), getMousePos);
         addManagers(shopButton, 1, 2);
@@ -173,19 +192,30 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
 
         // Shop Items
         Button ring = new Button(imageLoader.getImage("GoldRing"), imageLoader.getImage("GoldRingToolTip"), new Vector(100, 310), new Dimension(150, 150), () -> {
-            if(money.spend(1000)) {
+            if(money.spendMoney(1000)) {
                 money.increaseMultiplyer(.2);
             }
         }, getMousePos);
         addManagers(ring, 2, 2);
 
         Button StuffedBunny = new Button(imageLoader.getImage("StuffedBunny"), imageLoader.getImage("GoldRingToolTip"), new Vector(300, 210), new Dimension(200, 300), () -> {
-            if(money.spend(10000)) {
+            if(money.spendMoney(10000)) {
                 money.increaseMultiplyer(3);
             }
         }, getMousePos);
         addManagers(StuffedBunny, 2, 2);
 
+
+
+
+
+
+
+
+
+
+
+        // Fake Blackjack
 
 
 
@@ -207,6 +237,18 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
         if(obj instanceof Clickable) {
             managerArray.getClickManager(sceneNumber).addClickable((Clickable) obj);
         }
+    }
+
+    private int getIndexOfStartStringInArrayList(ArrayList<String> strings, String startStringToFind) {
+        for(int i = 0; i < strings.size(); i++) {
+            if(strings.get(i).substring(0, 1).equals(startStringToFind)) {
+                return i;
+            } else if(strings.get(i).substring(0, 2).equals(startStringToFind)) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     @Override

@@ -1,5 +1,7 @@
 package net.torghton.BlackJackLab;
 
+import java.util.ArrayList;
+
 interface SceneChanged {
     void run(Integer scene);
 }
@@ -8,7 +10,7 @@ public class Scene {
 
     Integer scene;
 
-    private SceneChanged onSceneChange;
+    private ArrayList<SceneChanged> onSceneChanges;
 
     public Scene() {
         this(0, temp -> {});
@@ -19,8 +21,10 @@ public class Scene {
     }
 
     public Scene(Integer scene, SceneChanged onSceneChange) {
+        onSceneChanges = new ArrayList<>();
+
         this.scene = scene;
-        this.onSceneChange = onSceneChange;
+        onSceneChanges.add(onSceneChange);
     }
 
     public void setScene(Integer scene) {
@@ -32,7 +36,10 @@ public class Scene {
         System.out.println("Last Scene: " + lastScene);
         System.out.println("Current Scene: " + currentScene);
         if(lastScene != currentScene) {
-           onSceneChange.run(currentScene);
+            for(SceneChanged sceneChanged: onSceneChanges) {
+                sceneChanged.run(currentScene);
+            }
+
         }
     }
 
@@ -41,6 +48,7 @@ public class Scene {
     }
 
     public void onSceneChange(SceneChanged onSceneChange) {
-        this.onSceneChange = onSceneChange;
+
+        onSceneChanges.add(onSceneChange);
     }
 }

@@ -11,6 +11,8 @@ public class Money implements Drawable {
     private int totalMoney = 0;
     private int amountBet = 0;
 
+    private int totalPoints = 0;
+
     private double cashMultiplyer = 1;
 
     private Vector location;
@@ -27,7 +29,17 @@ public class Money implements Drawable {
         this.totalMoney = totalMoney;
     }
 
-    public boolean spend(int amount) {
+    public boolean spendMoney(int amount) {
+        if(amount >= 0) {
+            if(totalMoney - amount >= 0) {
+                setTotalMoney(totalMoney - amount);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean spendPoints(int amount) {
         if(amount >= 0) {
             if(totalMoney - amount >= 0) {
                 setTotalMoney(totalMoney - amount);
@@ -41,22 +53,46 @@ public class Money implements Drawable {
         setTotalMoney(totalMoney + amount);
     }
 
-    public void calculateNewMoneyFromPoints(boolean playerWon) {
+    public void calculateNewMoneyFromWinner(boolean playerWon) {
         if(playerWon) {
             gain((int) (amountBet*2*cashMultiplyer));
         }
         amountBet = 0;
     }
 
+    public void setTotalPoints(int totalPoints) {
+        this.totalPoints = totalPoints;
+    }
+
+    public void calculateNewPointsFramGamePoints(int points) {
+        switch(points) {
+            case 16:
+            case 17:
+                setTotalPoints(totalPoints + 1);
+                break;
+            case 18:
+            case 19:
+                setTotalPoints(totalPoints + 2);
+                break;
+            case 20:
+                setTotalPoints(totalPoints + 3);
+                break;
+            case 21:
+                setTotalPoints(totalPoints + 5);
+                break;
+
+        }
+    }
+
     public boolean bet(int amountToBet) {
         if(amountToBet < totalMoney) {
-            if(spend(amountToBet)) {
+            if(spendMoney(amountToBet)) {
                 amountBet += amountToBet;
                 return true;
             }
         } else {
             amountBet += totalMoney;
-            spend(totalMoney);
+            spendMoney(totalMoney);
             return true;
         }
         return false;
@@ -71,6 +107,7 @@ public class Money implements Drawable {
         g.setColor(Color.YELLOW);
         g.setFont(new Font("Money", 0, size));
         g.drawString("$$$ = " + totalMoney, (int) location.getXDirection(), (int) location.getYDirection());
+        g.drawString("Points = " + totalPoints, (int) location.getXDirection(), (int) location.getYDirection()+size*2);
         g.setFont(new Font("Amount Bet", 0, size/2));
         g.drawString("Amount Bet = " + amountBet, (int) location.getXDirection(), (int) location.getYDirection() + size);
     }

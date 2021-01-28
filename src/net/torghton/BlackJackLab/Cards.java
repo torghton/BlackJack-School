@@ -10,7 +10,7 @@ import java.util.Hashtable;
 import java.util.Random;
 
 interface GameStateEvent {
-    void onGameEnd(boolean playerWon);
+    void onGameEnd(boolean playerWon, int points);
 }
 
 public class Cards implements Drawable, KeyInteractable {
@@ -29,11 +29,9 @@ public class Cards implements Drawable, KeyInteractable {
 
     private GameStateEvent gameStateEvent;
 
-    private Image[] suitImages;
     private Image[] cardImages;
 
-    public Cards(Image[] suitImages, Image[] cardImages, int[] CardPoints, GameStateEvent gameStateEvent) {
-        this.suitImages = suitImages;
+    public Cards(Image[] cardImages, int[] CardPoints, GameStateEvent gameStateEvent) {
         this.cardImages = cardImages;
 
         playerWon = false;
@@ -66,7 +64,7 @@ public class Cards implements Drawable, KeyInteractable {
         keys.put(82, () -> {
             if(previewMode) {
                 gameOver = true;
-                gameStateEvent.onGameEnd(playerWon);
+                gameStateEvent.onGameEnd(playerWon, player.getTotalPoints());
                 player.getCardsInHand().clear();
                 dealer.getCardsInHand().clear();
             }
@@ -75,11 +73,11 @@ public class Cards implements Drawable, KeyInteractable {
         cardsInDeck = new Card[CardPoints.length*4];
     }
 
-    public void restart(Image[] suitImages, Image[] cardImages) {
+    public void restart(Image[] cardImages) {
         player.getCardsInHand().clear();
         dealer.getCardsInHand().clear();
 
-        cardsInDeck = newCards(cardsInDeck, suitImages, cardImages);
+        cardsInDeck = newCards(cardsInDeck, cardImages);
         shuffleCards(cardsInDeck);
 
         player.draw();
@@ -90,7 +88,7 @@ public class Cards implements Drawable, KeyInteractable {
     }
 
     public void restart() {
-        restart(suitImages, cardImages);
+        restart(cardImages);
     }
 
     public void setGameOver(boolean gameOver) {
@@ -101,17 +99,14 @@ public class Cards implements Drawable, KeyInteractable {
         this.previewMode = previewMode;
     }
 
-    private Card[] newCards(Card[] _cards, Image[] _suitImages, Image[] cardImages) {
+    private Card[] newCards(Card[] _cards, Image[] cardImages) {
         Card[] _cardsTemp = new Card[_cards.length];
-
-        int currentIter = 0;
 
         // 4 card suits
         for(int i = 0; i < 4; i++) {
             // All of the card values
-            for(int j = 0; j < CardPoints.length; j++) {
-                _cardsTemp[currentIter] = new Card(CardPoints[j], _suitImages[i], cardImages[j]);
-                currentIter++;
+            for(int j = 0; j < 13; j++) {
+                _cardsTemp[(i*13)+j] = new Card(CardPoints[j], cardImages[j]);
             }
         }
 
