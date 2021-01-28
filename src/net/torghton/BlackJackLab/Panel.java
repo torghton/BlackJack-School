@@ -45,6 +45,8 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
         imageLoader.loadImage("TempButton", "./assets/Buttons/TempButton.jpg");
         imageLoader.loadImage("ExitHand", "./assets/Buttons/ExitHand.gif");
         imageLoader.loadImage("GoldRing", "./assets/ShopImages/GoldRing.png");
+        imageLoader.loadImage("GoldRingToolTip", "./assets/ShopImages/GoldRingToolTip.png");
+        imageLoader.loadImage("StuffedBunny", "./assets/ShopImages/StuffedBunny.png");
 
         DrawableManager drawableManagerT = new DrawableManager(5);
 
@@ -96,8 +98,30 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
         cardImages[11] = imageLoader.loadImage("King", "./assets/CardValues/King.png");
         cardImages[12] = imageLoader.loadImage("Ace", "./assets/CardValues/Ace.png");
 
-        Money money = new Money(100, new Vector(500, 50), 50);
+        Money money = new Money(200, new Vector(500, 50), 50);
         addManagers(money, 1, 4);
+
+        Prompt prompt = new Prompt("0", new Vector(500,500),  new Dimension(100, 40));
+        prompt.addActionListener((event) -> {
+            int moneyBetting = prompt.getIntValue();
+
+            if(moneyBetting > 0) {
+                if(money.bet(moneyBetting)) {
+                    prompt.setText("0");
+                    prompt.setFocusable(false);
+                    prompt.setVisible(false);
+                }
+            }
+        });
+        add(prompt);
+
+        scene.onSceneChange((scene) -> {
+            if(scene == 1) {
+                prompt.setVisible(true);
+            } else {
+                prompt.setVisible(false);
+            }
+        });
 
         Background backgroundT = new Background(imageLoader.getImage("BackgroundT"), SCREENSIZE);
         addManagers(backgroundT, 0, 0);
@@ -108,21 +132,47 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
         Background shopBackground = new Background(imageLoader.getImage("ShopBackground"), SCREENSIZE);
         addManagers(shopBackground, 2, 0);
 
-        cards = new Cards(suitImages, cardImages, cardValues);
+        cards = new Cards(suitImages, cardImages, cardValues, playerWon -> {
+            money.calculateNewMoneyFromPoints(playerWon);
+            prompt.setVisible(true);
+            prompt.setFocusable(true);
+        });
         addManagers(cards, 1, 2);
 
-        Button playButton = new Button(imageLoader.getImage("TempButton"), new Vector(SCREENSIZE.width/2 - 100, 100), new Dimension(200, 80), () -> scene.setScene(1));
+        MouseData getMousePos = () -> {
+            Point mousePos = getMousePosition();
+
+            if(mousePos != null) {
+                return new Vector(mousePos);
+            }
+
+            return new Vector(-100, -100);
+        };
+
+        Button playButton = new Button(imageLoader.getImage("TempButton"), new Vector(SCREENSIZE.width/2 - 100, 100), new Dimension(200, 80), () -> scene.setScene(1), getMousePos);
         addManagers(playButton, 0, 2);
 
-        Button shopButton = new Button(imageLoader.getImage("TempButton"), new Vector(10, 10), new Dimension(100, 100), () -> scene.setScene(2));
+        Button shopButton = new Button(imageLoader.getImage("TempButton"), new Vector(10, 10), new Dimension(100, 100), () -> scene.setScene(2), getMousePos);
         addManagers(shopButton, 1, 2);
 
-        Button leaveButton = new Button(imageLoader.getImage("ExitHand"), new Vector(0, 0), new Dimension(200, 200), () -> scene.setScene(1));
+        Button leaveButton = new Button(imageLoader.getImage("ExitHand"), new Vector(0, 0), new Dimension(200, 200), () -> scene.setScene(1), getMousePos);
         addManagers(leaveButton, 2, 2);
 
         // Shop Items
-        Button ring = new Button(imageLoader.getImage("GoldRing"), new Vector(100, 310), new Dimension(150, 150), () -> System.out.println("RING"));
+        Button ring = new Button(imageLoader.getImage("GoldRing"), imageLoader.getImage("GoldRingToolTip"), new Vector(100, 310), new Dimension(150, 150), () -> {
+            if(money.spend(1000)) {
+                money.increaseMultiplyer(.2);
+            }
+        }, getMousePos);
         addManagers(ring, 2, 2);
+
+        Button StuffedBunny = new Button(imageLoader.getImage("StuffedBunny"), imageLoader.getImage("GoldRingToolTip"), new Vector(300, 210), new Dimension(200, 300), () -> {
+            if(money.spend(10000)) {
+                money.increaseMultiplyer(3);
+            }
+        }, getMousePos);
+        addManagers(StuffedBunny, 2, 2);
+
 
 
 
@@ -171,7 +221,6 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
             }
 
             managerArray.getUpdater(scene.getScene()).updateAll();
-
         }
     }
 

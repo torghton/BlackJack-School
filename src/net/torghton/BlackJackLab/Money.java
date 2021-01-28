@@ -11,6 +11,8 @@ public class Money implements Drawable {
     private int totalMoney = 0;
     private int amountBet = 0;
 
+    private double cashMultiplyer = 1;
+
     private Vector location;
     private int size;
 
@@ -26,9 +28,11 @@ public class Money implements Drawable {
     }
 
     public boolean spend(int amount) {
-        if(totalMoney - amount >= 0) {
-            setTotalMoney(totalMoney - amount);
-            return true;
+        if(amount >= 0) {
+            if(totalMoney - amount >= 0) {
+                setTotalMoney(totalMoney - amount);
+                return true;
+            }
         }
         return false;
     }
@@ -39,14 +43,27 @@ public class Money implements Drawable {
 
     public void calculateNewMoneyFromPoints(boolean playerWon) {
         if(playerWon) {
-            gain(amountBet*2);
+            gain((int) (amountBet*2*cashMultiplyer));
         }
+        amountBet = 0;
     }
 
-    public void bet(int amountBet) {
-        if(spend(amountBet)) {
-            this.amountBet = amountBet;
+    public boolean bet(int amountToBet) {
+        if(amountToBet < totalMoney) {
+            if(spend(amountToBet)) {
+                amountBet += amountToBet;
+                return true;
+            }
+        } else {
+            amountBet += totalMoney;
+            spend(totalMoney);
+            return true;
         }
+        return false;
+    }
+
+    public void increaseMultiplyer(double amount) {
+        cashMultiplyer += amount;
     }
 
     @Override
@@ -54,5 +71,7 @@ public class Money implements Drawable {
         g.setColor(Color.YELLOW);
         g.setFont(new Font("Money", 0, size));
         g.drawString("$$$ = " + totalMoney, (int) location.getXDirection(), (int) location.getYDirection());
+        g.setFont(new Font("Amount Bet", 0, size/2));
+        g.drawString("Amount Bet = " + amountBet, (int) location.getXDirection(), (int) location.getYDirection() + size);
     }
 }

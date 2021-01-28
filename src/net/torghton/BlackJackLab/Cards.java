@@ -9,6 +9,10 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Random;
 
+interface GameStateEvent {
+    void onGameEnd(boolean playerWon);
+}
+
 public class Cards implements Drawable, KeyInteractable {
     private Card[] cardsInDeck;
 
@@ -21,7 +25,17 @@ public class Cards implements Drawable, KeyInteractable {
 
     private boolean gameOver;
 
-    public Cards(Image[] _suitImages, Image[] cardImages, int[] CardPoints) {
+    private GameStateEvent gameStateEvent;
+
+    private Image[] suitImages;
+    private Image[] cardImages;
+
+    public Cards(Image[] suitImages, Image[] cardImages, int[] CardPoints, GameStateEvent gameStateEvent) {
+        this.suitImages = suitImages;
+        this.cardImages = cardImages;
+
+        this.gameStateEvent = gameStateEvent;
+
         this.CardPoints = CardPoints;
 
         player = new Player();
@@ -46,7 +60,15 @@ public class Cards implements Drawable, KeyInteractable {
         });
 
         cardsInDeck = new Card[CardPoints.length*4];
-        cardsInDeck = newCards(cardsInDeck, _suitImages, cardImages);
+
+        restart(suitImages, cardImages);
+    }
+
+    private void restart(Image[] suitImages, Image[] cardImages) {
+        player.getCardsInHand().clear();
+        dealer.getCardsInHand().clear();
+
+        cardsInDeck = newCards(cardsInDeck, suitImages, cardImages);
         shuffleCards(cardsInDeck);
 
         player.draw();
@@ -82,19 +104,27 @@ public class Cards implements Drawable, KeyInteractable {
             if(!dealer.checkForBust()) {
                 if(dealer.getTotalPoints() < player.getTotalPoints()) {
                     System.out.println("YOU WIN");
+                    gameStateEvent.onGameEnd(true);
                 } else {
                     System.out.println("You Lost!");
+                    gameStateEvent.onGameEnd(false);
                 }
             } else {
                 System.out.println("DEALER BUSTED");
                 System.out.println("YOU WIN");
+                gameStateEvent.onGameEnd(true);
             }
         } else {
             System.out.println("You Lost!");
+            gameStateEvent.onGameEnd(false);
         }
 
         System.out.println("Dealer Points: " + dealer.getTotalPoints());
         System.out.println("Player Points: " + player.getTotalPoints());
+
+        restart(suitImages, cardImages);
+
+        gameOver = false;
 
     }
 
@@ -143,6 +173,7 @@ public class Cards implements Drawable, KeyInteractable {
             cardsInHand = new ArrayList<>();
         }
 
+        // TODO: SWITCH THIS TO TAKE FROM TOP OF THE DECK, AND NOT A RANDOM INDEX
         public void draw() {
             int rnd = new Random().nextInt(cardsInDeck.length);
             cardsInHand.add(cardsInDeck[rnd]);

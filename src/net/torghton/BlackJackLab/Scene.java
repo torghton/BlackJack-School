@@ -29,6 +29,8 @@ public class Scene {
     }
 
     private void callSceneChange(Integer lastScene, Integer currentScene) {
+        System.out.println("Last Scene: " + lastScene);
+        System.out.println("Current Scene: " + currentScene);
         if(lastScene != currentScene) {
            onSceneChange.run(currentScene);
         }
