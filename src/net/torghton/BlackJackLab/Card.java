@@ -9,10 +9,19 @@ public class Card {
     private int value;
 
     private Image cardValue;
+    private Image hiddenCard;
 
-    public Card(int value, Image cardValue) {
+    private boolean hidden;
+
+    public Card(int value, Image cardValue, Image hiddenCard) {
         this.value = value;
         this.cardValue = cardValue;
+
+        this.hiddenCard = hiddenCard;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
     }
 
     public int getValue() {
@@ -20,6 +29,10 @@ public class Card {
     }
 
     public void drawSelf(Graphics g, Vector location, Dimension size) {
-        g.drawImage(cardValue, (int) location.getXDirection(), (int) location.getYDirection(), (int) size.getWidth(), (int) size.getHeight(), null);
+        if(hidden) {
+            g.drawImage(hiddenCard, (int) location.getXDirection(), (int) location.getYDirection(), (int) size.getWidth(), (int) size.getHeight(), null);
+        } else {
+            g.drawImage(cardValue, (int) location.getXDirection(), (int) location.getYDirection(), (int) size.getWidth(), (int) size.getHeight(), null);
+        }
     }
 }

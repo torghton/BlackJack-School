@@ -31,8 +31,16 @@ public class Cards implements Drawable, KeyInteractable {
 
     private Image[] cardImages;
 
-    public Cards(Image[] cardImages, int[] CardPoints, GameStateEvent gameStateEvent) {
+    private Image hiddenCard;
+
+    private String outCome;
+
+    public Cards(Image[] cardImages, Image hiddenCard, int[] CardPoints, GameStateEvent gameStateEvent) {
+        this.hiddenCard = hiddenCard;
+
         this.cardImages = cardImages;
+
+        outCome = "";
 
         playerWon = false;
 
@@ -67,6 +75,7 @@ public class Cards implements Drawable, KeyInteractable {
                 gameStateEvent.onGameEnd(playerWon, player.getTotalPoints());
                 player.getCardsInHand().clear();
                 dealer.getCardsInHand().clear();
+                outCome = "";
             }
         });
 
@@ -74,6 +83,14 @@ public class Cards implements Drawable, KeyInteractable {
     }
 
     public void restart(Image[] cardImages) {
+        for(Card card: player.getCardsInHand()) {
+            card.setHidden(false);
+        }
+
+        for(Card card: dealer.getCardsInHand()) {
+            card.setHidden(false);
+        }
+
         player.getCardsInHand().clear();
         dealer.getCardsInHand().clear();
 
@@ -83,7 +100,7 @@ public class Cards implements Drawable, KeyInteractable {
         player.draw();
         player.draw();
 
-        dealer.draw();
+        dealer.draw().setHidden(true);
         dealer.draw();
     }
 
@@ -106,7 +123,7 @@ public class Cards implements Drawable, KeyInteractable {
         for(int i = 0; i < 4; i++) {
             // All of the card values
             for(int j = 0; j < 13; j++) {
-                _cardsTemp[(i*13)+j] = new Card(CardPoints[j], cardImages[j]);
+                _cardsTemp[(i*13)+j] = new Card(CardPoints[j], cardImages[j], hiddenCard);
             }
         }
 
@@ -121,24 +138,20 @@ public class Cards implements Drawable, KeyInteractable {
 
             if(!dealer.checkForBust()) {
                 if(dealer.getTotalPoints() < player.getTotalPoints()) {
-                    System.out.println("YOU WIN");
+                    outCome = "YOU WIN";
                     playerWon = true;
                 } else {
-                    System.out.println("You Lost!");
+                    outCome = "You Lost!";
                     playerWon = false;
                 }
             } else {
-                System.out.println("DEALER BUSTED");
-                System.out.println("YOU WIN");
+                outCome = "DEALER BUSTED\nYOU WIN";
                 playerWon = true;
             }
         } else {
-            System.out.println("You Lost!");
+            outCome = "You Lost!";
             playerWon = false;
         }
-
-        System.out.println("Dealer Points: " + dealer.getTotalPoints());
-        System.out.println("Player Points: " + player.getTotalPoints());
 
     }
 
@@ -157,13 +170,30 @@ public class Cards implements Drawable, KeyInteractable {
 
     @Override
     public void drawSelf(Graphics g) {
+        g.setFont(new Font("None", 3, 60));
+
         for(int i = 0; i < player.getCardsInHand().size(); i++) {
             player.getCardsInHand().get(i).drawSelf(g, new Vector(100 + i*90, 100 +i*10), new Dimension(160, 200));
         }
 
-        for(int i = 0; i < dealer.getCardsInHand().size(); i++) {
-            dealer.getCardsInHand().get(i).drawSelf(g, new Vector(100 + i*90, 300 +i*10), new Dimension(160, 200));
+        g.setColor(Color.BLUE);
+        if(player.getCardsInHand().size() > 0) {
+            g.drawString("You", 200 + player.getCardsInHand().size()*90, 200 + player.getCardsInHand().size()*10);
         }
+
+
+        for(int i = 0; i < dealer.getCardsInHand().size(); i++) {
+            dealer.getCardsInHand().get(i).drawSelf(g, new Vector(100 + i*90, 400 +i*10), new Dimension(160, 200));
+        }
+
+        g.setColor(Color.RED);
+        if(player.getCardsInHand().size() > 0) {
+            g.drawString("Dealer", 200 + dealer.getCardsInHand().size()*90, 500 + dealer.getCardsInHand().size()*10);
+        }
+
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("None", 1, 80));
+        g.drawString(outCome, 0, 600);
     }
 
     @Override
@@ -188,9 +218,11 @@ public class Cards implements Drawable, KeyInteractable {
         }
 
         // TODO: SWITCH THIS TO TAKE FROM TOP OF THE DECK, AND NOT A RANDOM INDEX
-        public void draw() {
+        public Card draw() {
             int rnd = new Random().nextInt(cardsInDeck.length);
             cardsInHand.add(cardsInDeck[rnd]);
+
+            return cardsInHand.get(cardsInHand.size()-1);
         }
 
         public boolean checkForBust() {
@@ -227,6 +259,8 @@ public class Cards implements Drawable, KeyInteractable {
         }
 
         public void autoPlay(Player player) {
+            getCardsInHand().get(0).setHidden(false);
+
             while(getTotalPoints() < 16 && player.getTotalPoints() > getTotalPoints()) {
                 draw();
             }

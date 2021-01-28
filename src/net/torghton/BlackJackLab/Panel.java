@@ -50,6 +50,7 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
         imageLoader.loadImage("StuffedBunny", "./assets/ShopImages/StuffedBunny.png");
         imageLoader.loadImage("ShoppingCartIcon", "./assets/Buttons/ShoppingCartIcon.png");
         imageLoader.loadImage("ShoppingCartHoverIcon", "./assets/Buttons/ShoppingCartHoverIcon.png");
+        imageLoader.loadImage("CardBack", "./assets/ExtraPlayingCards/PlayingCardBack.png");
 
         DrawableManager drawableManagerT = new DrawableManager(5);
 
@@ -158,7 +159,7 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
         Background shopBackground = new Background(imageLoader.getImage("ShopBackground"), SCREENSIZE);
         addManagers(shopBackground, 2, 0);
 
-        cards = new Cards(cardImages, cardValues, (playerWon, totalPlayerPoints) -> {
+        cards = new Cards(cardImages, imageLoader.getImage("CardBack"), cardValues, (playerWon, totalPlayerPoints) -> {
             money.calculateNewMoneyFromWinner(playerWon);
             money.calculateNewPointsFramGamePoints(totalPlayerPoints);
             prompt.setVisible(true);
