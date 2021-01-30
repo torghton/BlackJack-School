@@ -1,6 +1,5 @@
 package net.torghton.BlackJackLab;
 
-import javafx.scene.control.ButtonBar;
 import net.torghton.BlackJackLab.AlexsGameEnhancers.*;
 
 import javax.swing.JPanel;
@@ -17,7 +16,7 @@ import java.util.Collections;
 
 
 // TODO: DISPLAY TOTAL POINTS AND POINTS EARNED
-public class Panel extends JPanel implements KeyListener, MouseListener {
+public class Table extends JPanel implements KeyListener, MouseListener {
 
     private final Dimension SCREENSIZE;
 
@@ -29,7 +28,7 @@ public class Panel extends JPanel implements KeyListener, MouseListener {
 
     ManagerArray managerArray;
 
-    public Panel(Dimension SCREENSIZE) {
+    public Table(Dimension SCREENSIZE) {
         setFocusable(true);
 
         setBackground(Color.WHITE);

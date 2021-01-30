@@ -7,7 +7,7 @@ public class Runner {
     public static void main(String[] args) {
         JFrame frame = new JFrame();
 
-        Panel panel = new Panel(new Dimension(800, 800));
+        Table panel = new Table(new Dimension(800, 800));
 
         // Adds the panels to the frame
         frame.add(panel);
